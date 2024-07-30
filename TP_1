@@ -1,0 +1,51 @@
+CREATE DATABASE IF NOT EXISTS guarderia_perros;
+USE guarderia_perros;
+
+CREATE TABLE Propietario (
+    ID_Propietario INT AUTO_INCREMENT PRIMARY KEY,
+    Nombre VARCHAR(100) NOT NULL,
+    Direccion VARCHAR(255),
+    Telefono VARCHAR(15),
+    Correo_Electronico VARCHAR(100)
+);
+
+
+CREATE TABLE Personal (
+    ID_Personal INT AUTO_INCREMENT PRIMARY KEY,
+    Nombre VARCHAR(100) NOT NULL,
+    Rol VARCHAR(50),
+    Telefono VARCHAR(15),
+    Correo_Electronico VARCHAR(100)
+);
+
+-- Tabla Perro
+CREATE TABLE Perro (
+    ID_Perro INT AUTO_INCREMENT PRIMARY KEY,
+    Nombre VARCHAR(100) NOT NULL,
+    Raza VARCHAR(100),
+    Edad INT,
+    Tamaño VARCHAR(50),
+    Fecha_Nacimiento DATE,
+    ID_Propietario INT,
+    FOREIGN KEY (ID_Propietario) REFERENCES Propietario(ID_Propietario)
+);
+
+-- Tabla Reserva
+CREATE TABLE Reserva (
+    ID_Reserva INT AUTO_INCREMENT PRIMARY KEY,
+    ID_Perro INT,
+    Fecha_Inicio DATE,
+    Fecha_Fin DATE,
+    ID_Personal INT,
+    FOREIGN KEY (ID_Perro) REFERENCES Perro(ID_Perro),
+    FOREIGN KEY (ID_Personal) REFERENCES Personal(ID_Personal)
+);
+
+-- Tabla Historial
+CREATE TABLE Historial (
+    ID_Historial INT AUTO_INCREMENT PRIMARY KEY,
+    ID_Perro INT,
+    Fecha DATE,
+    Descripcion TEXT,
+    FOREIGN KEY (ID_Perro) REFERENCES Perro(ID_Perro)
+);
