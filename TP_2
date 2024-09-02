@@ -1,0 +1,188 @@
+-Manipular su contenido a través de DML (INSERT, UPDATE, DELETE).
+-Integrar Subconsultas dentro de DML.
+-Agregar contenido a las tablas mediante importación del mismo.
+
+
+
+INSERT INTO guarderia_perros.Propietario (Nombre, Direccion, Telefono, Correo_Electronico) VALUES
+('Juan Pérez', 'Calle Falsa 123', '555-1234', 'juan.perez@example.com'),
+('Ana Gómez', 'Avenida Siempre Viva 742', '555-5678', 'ana.gomez@example.com'),
+('Luis Rodríguez', 'Plaza Mayor 1', '555-8765', 'luis.rodriguez@example.com'),
+('María López', 'Calle del Sol 99', '555-4321', 'maria.lopez@example.com'),
+('Carlos Fernández', 'Calle Luna 22', '555-3456', 'carlos.fernandez@example.com'),
+('Laura Martínez', 'Avenida del Parque 10', '555-6543', 'laura.martinez@example.com'),
+('Jorge Ruiz', 'Calle del Río 5', '555-9876', 'jorge.ruiz@example.com'),
+('Isabel Torres', 'Plaza de la Libertad 3', '555-3456', 'isabel.torres@example.com'),
+('Fernando Morales', 'Calle de la Paz 8', '555-8765', 'fernando.morales@example.com'),
+('Patricia Romero', 'Calle del Viento 15', '555-5432', 'patricia.romero@example.com');
+
+INSERT INTO guarderia_perros.Personal (Nombre, Rol, Telefono, Correo_Electronico) VALUES
+('Pedro Martínez', 'Veterinario', '555-1111', 'pedro.martinez@example.com'),
+('Sara Gómez', 'Cuidador', '555-2222', 'sara.gomez@example.com'),
+('Miguel Pérez', 'Entrenador', '555-3333', 'miguel.perez@example.com'),
+('Elena García', 'Recepcionista', '555-4444', 'elena.garcia@example.com'),
+('Roberto Sánchez', 'Cuidador', '555-5555', 'roberto.sanchez@example.com');
+
+INSERT INTO guarderia_perros.Perro (Nombre, Raza, Edad, Tamaño, Fecha_Nacimiento, ID_Propietario) VALUES
+('Rex', 'Pastor Alemán', 5, 'Grande', '2018-03-15', 1),
+('Luna', 'Labrador', 3, 'Mediano', '2020-06-25', 2),
+('Max', 'Bulldog', 4, 'Mediano', '2019-09-10', 3),
+('Bella', 'Beagle', 2, 'Pequeño', '2021-12-05', 4),
+('Milo', 'Pomerania', 1, 'Pequeño', '2022-01-20', 5),
+('Lucy', 'Schnauzer', 7, 'Mediano', '2016-07-30', 6),
+('Rocky', 'Boxer', 6, 'Grande', '2017-04-10', 7),
+('Daisy', 'Cocker Spaniel', 3, 'Mediano', '2019-11-15', 8),
+('Buddy', 'Chihuahua', 5, 'Pequeño', '2018-10-10', 9),
+('Sadie', 'Pitbull', 4, 'Grande', '2019-02-20', 10);
+
+INSERT INTO guarderia_perros.Reserva (ID_Perro, Fecha_Inicio, Fecha_Fin, ID_Personal) VALUES
+(1, '2024-01-01', '2024-01-07', 1),
+(2, '2024-02-01', '2024-02-07', 2),
+(3, '2024-03-01', '2024-03-07', 3),
+(4, '2024-04-01', '2024-04-07', 4),
+(5, '2024-05-01', '2024-05-07', 5),
+(6, '2024-06-01', '2024-06-07', 6),
+(7, '2024-07-01', '2024-07-07', 7),
+(8, '2024-08-01', '2024-08-07', 8),
+(9, '2024-09-01', '2024-09-07', 9),
+(10, '2024-10-01', '2024-10-07', 10);
+
+INSERT INTO guarderia_perros.Historial (ID_Perro, Fecha, Descripcion) VALUES
+(1, '2024-01-02', 'Vacunación anual. Todo en orden.'),
+(2, '2024-02-03', 'Chequeo general. Buen estado de salud.'),
+(3, '2024-03-05', 'Tratamiento contra pulgas.'),
+(4, '2024-04-06', 'Desparasitante administrado.'),
+(5, '2024-05-07', 'Chequeo de rutina.'),
+(6, '2024-06-08', 'Vacunación contra la rabia.'),
+(7, '2024-07-09', 'Revisión dental. Necesita limpieza.'),
+(8, '2024-08-10', 'Chequeo completo. Todo en orden.'),
+(9, '2024-09-11', 'Tratamiento para alergias.'),
+(10, '2024-10-12', 'Vacunación anual. Todo en orden.');
+
+UPDATE guarderia_perros.Propietario
+SET Telefono = '555-9999'
+WHERE ID_Propietario = 1;
+----------------------------------------------------------------------------
+- Integrar Funciones Almacenadas.
+
+
+USE `guarderia_perros`;
+
+CREATE FUNCTION CalcularEdadPerro(id_perro INT)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE edad INT DEFAULT 0;
+
+    SELECT TIMESTAMPDIFF(YEAR, Fecha_Nacimiento, CURDATE()) INTO edad
+    FROM Perro
+    WHERE ID_Perro = id_perro
+    LIMIT 1; -- Asegura que solo una fila se retorna
+    RETURN edad;
+END  ;
+
+
+
+CREATE FUNCTION ObtenerNombrePropietario(id_perro INT)
+RETURNS VARCHAR(100)
+DETERMINISTIC
+BEGIN
+    DECLARE nombre_propietario VARCHAR(100);
+
+    -- Obtener el nombre del propietario del perro especificado
+    SELECT p.Nombre INTO nombre_propietario
+    FROM Propietario p
+    JOIN Perro pr ON p.ID_Propietario = pr.ID_Propietario
+    WHERE pr.ID_Perro = id_perro
+    LIMIT 1;
+
+    RETURN nombre_propietario;
+END ;
+
+
+------------------------------------------------------------------------------------------------------
+
+Agregar Stored Procedures para facilitar el manejo de datos.
+
+CREATE PROCEDURE AgregarReserva(
+    IN p_id_perro INT,
+    IN p_fecha_inicio DATE,
+    IN p_id_personal INT
+)
+BEGIN
+    INSERT INTO Reserva (ID_Perro, Fecha_Inicio,  ID_Personal)
+    VALUES (p_id_perro, p_fecha_inicio, p_id_personal);
+END ;
+
+
+
+
+CREATE PROCEDURE `Actualizardatos`
+(IN p_id_propietario int,
+in p_nombre varchar(200),
+in p_dirección varchar (300),
+in correo_electronico varchar(100)
+)
+BEGIN
+Update Propietario
+set Nombre = p_nombre,
+dirección = p_dirección,
+correo_electronico = p_correo_electronico
+where ID_propietario = p.id_propietario;
+	
+
+END
+
+--------------------------------------------------------------------------------------------------------
+
+
+Integrar Triggers para crear tablas de Auditoría..
+
+
+CREATE TABLE guarderia_perros.Propietario_Auditoria (
+    ID_Auditoria INT AUTO_INCREMENT PRIMARY KEY,
+    ID_Propietario INT,
+    Nombre_Viejo VARCHAR(200),
+    Direccion_Vieja VARCHAR(300),
+    Telefono_Viejo VARCHAR(20),
+    Correo_Electronico_Viejo VARCHAR(100),
+    Fecha_Cambio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Usuario_Cambio VARCHAR(100) -- Puedes incluir el usuario que hizo el cambio si es necesario
+);
+
+
+
+DELIMITER //
+
+CREATE TRIGGER AuditarActualizacionPropietario
+AFTER UPDATE ON guarderia_perros.Propietario
+FOR EACH ROW
+BEGIN
+    INSERT INTO guarderia_perros.Propietario_Auditoria (
+        ID_Propietario,
+        Nombre_Viejo,
+        Direccion_Vieja,
+        Telefono_Viejo,
+        Correo_Electronico_Viejo
+    )
+    VALUES (
+        OLD.ID_Propietario,
+        OLD.Nombre,
+        OLD.Direccion,
+        OLD.Telefono,
+        OLD.Correo_Electronico
+    );
+END//
+
+DELIMITER ;
+
+
+CREATE TRIGGER ActualizarEdadPerro
+BEFORE INSERT ON guarderia_perros.Perro
+FOR EACH ROW
+BEGIN
+    SET NEW.Edad = TIMESTAMPDIFF(YEAR, NEW.Fecha_Nacimiento, CURDATE());
+END//
+
+DELIMITER ;
+
